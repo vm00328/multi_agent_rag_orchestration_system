@@ -8,6 +8,8 @@ The Qwen3-Embedding-0.6B model is chosen due to it ranking very high on the MTEB
 
 It offers strong, instruction-aware performance (rank #16 on MTEB) despite its lightweight size, supporting over 100 languages, 32k context, and user-defined dimensions for high-speed, cost-effective embeddings.
 
+In addition, it is open-source which offers flexibility and cost savings. A proprietary embedding model increases the risk of vendor lock-in and higher costs. 
+
 2. **Embedding Normalization**
 
 Embedding normalization scales vector embeddings to a consistent unit length (L2 norm), preserving their direction while making similarity comparisons (cosine similarity) consistent and fair. It is crucial for preventing popularity bias, improving similarity search accuracy, and ensuring that results are driven by vector direction rather than magnitude.
@@ -16,7 +18,7 @@ Embedding normalization scales vector embeddings to a consistent unit length (L2
 
 FAISS is highly optimized for performance, scalable, memory efficient and serverless.
 
-1. **Text Splitter**
+4. **Text Splitter**
 
 Choice: RecursiveCharacterTextSplitter
 
