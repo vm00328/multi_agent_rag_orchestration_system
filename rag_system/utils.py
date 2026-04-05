@@ -39,3 +39,14 @@ class AgentResponse:
     answer: str
     citations: List[Citation]
     retrieved_chunks: List[RetrievedChunk]
+
+
+@dataclass
+class ClassificationResult:
+    """Result of classifying a user query into one or more knowledge domains."""
+
+    query: str
+    domains: List[Domain]
+    sub_queries: Dict[str, str]
+    confidence_scores: Dict[str, float]
+    is_multi_domain: bool
