@@ -50,3 +50,13 @@ class ClassificationResult:
     sub_queries: Dict[str, str]
     confidence_scores: Dict[str, float]
     is_multi_domain: bool
+
+
+@dataclass
+class OrchestratorResult:
+    """Final synthesized response from the orchestrator."""
+
+    answer: str  # the final synthesized text combining all domain answers
+    classification: ClassificationResult  #  full classification result for traceability (domains, confidence scores, sub-queries)
+    agent_responses: List[AgentResponse]  # domain agent responses (answer + citations)
+    citations: List[Citation]  # flattened list of all citations from all agents
