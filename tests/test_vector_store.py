@@ -1,16 +1,7 @@
-import pytest
 from rag_system.utils import Domain, RetrievedChunk
-from rag_system.vector_store import VectorStoreManager
 import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-
-@pytest.fixture(scope="module")
-def manager():
-    m = VectorStoreManager(data_dir="data/")
-    m.initialize()
-    return m
 
 
 # --- utils.py ---

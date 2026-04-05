@@ -1,5 +1,3 @@
-
-
 **Design Desicions:**
 
 1. **Embedding Model**
