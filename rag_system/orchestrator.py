@@ -5,16 +5,16 @@ from rag_system.vector_store import VectorStoreManager
 from rag_system.domain_agents import DomainAgent
 from rag_system.query_classifier import QueryClassifier
 
-SYNTHESIS_PROMPT = (
-    "You are a knowledge synthesizer for Postbank's internal knowledge system. "
-    "You will receive answers from multiple domain specialists (technical, business, compliance). "
-    "Combine them into a single, coherent response that:\n"
-    "- Addresses the original question completely\n"
-    "- Preserves specific details from each domain\n"
-    "- Highlights connections between domains where relevant\n"
-    "- Uses clear section headings when covering multiple domains\n"
-    "Do not fabricate information beyond what the specialists provided."
-)
+SYNTHESIS_PROMPT = """You are a knowledge synthesizer for Postbank's internal knowledge system.
+    You will receive answers from multiple domain specialists (technical, business, compliance).
+    Combine them into a single, coherent response that:
+    - Addresses the original question completely
+    - Preserves specific details from each domain
+    - Highlights connections between domains where relevant
+    - Uses clear section headings when covering multiple domains
+    
+    If domain answers contradict each other, explicitly flag the conflict, present both perspectives, and recommend following the higher-confidence domain's guidance."
+    Do not fabricate information beyond what the specialists provided."""
 
 
 class Orchestrator:
@@ -67,7 +67,9 @@ class Orchestrator:
         ]
 
         # Response Synthesis
-        answer = self._synthesize(user_query, agent_responses)
+        answer = self._synthesize(
+            user_query, classification.confidence_scores, agent_responses
+        )
 
         return OrchestratorResult(
             answer=answer,
@@ -76,7 +78,12 @@ class Orchestrator:
             citations=citations,
         )
 
-    def _synthesize(self, user_query: str, agent_responses: List[AgentResponse]) -> str:
+    def _synthesize(
+        self,
+        user_query: str,
+        confidence_scores: Dict[str, float],
+        agent_responses: List[AgentResponse],
+    ) -> str:
         """Combines domain agent answers into a single final response."""
         # Single domain - no need for an extra LLM call
         if len(agent_responses) == 1:
@@ -84,7 +91,7 @@ class Orchestrator:
 
         # Multi-domain - synthesize via LLM
         domain_answers = "\n\n".join(
-            f"[{response.domain.value.upper()}]\n{response.answer}"
+            f"[{response.domain.value.upper()} | confidence: {confidence_scores.get(response.domain.value, 0.0):.2f}]\n{response.answer}"
             for response in agent_responses
         )
 
@@ -95,5 +102,6 @@ class Orchestrator:
                 f"Domain specialist answers:\n{domain_answers}"
             ),
         ]
+
         response = self.llm.invoke(messages)
         return response.content

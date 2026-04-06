@@ -30,9 +30,9 @@ class DomainAgent:
     A RAG agent for a specific knowledge domain.
 
     Uses the following pattern:
-    1. Retrieve relevant chunks from the domain's FAISS index
-    2. Build a prompt with SystemMessage + HumanMessage
-    3. Call the LLM
+    1. Retrieves relevant chunks from the domain's FAISS index
+    2. Builds a prompt with SystemMessage + HumanMessage
+    3. Calls the LLM
 
     Usage:
         agent = DomainAgent(Domain.TECHNICAL, vector_store_manager, llm)

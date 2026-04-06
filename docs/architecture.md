@@ -26,6 +26,14 @@ Pros: Highly recommended by and as it keeps paragraphs, sentences, and words tog
 
 Cons: Slightly slower than Character Text Splitter.
 
+5. **Cross-domain conflict resolution**
+
+I have decided to handle potential conflicts between the domain agents directly as part of the SYNTHESIS_PROMPT, because:
+
+- this is the most straightforward and efficient way of approaching this problem
+
+- we could compare the semantic similarity between the responses of the agents but the problem is that low semantic similarity doesn't mean contradiction - the technical and compliance domains should talk about different things. This way we risk getting false positives constantly.
+
 
 **Limitations:**
 
