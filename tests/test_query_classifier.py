@@ -10,8 +10,8 @@ from rag_system.query_classifier import (
 )
 
 
+# Helper function to create a mock LLM that returns a specified JSON response
 def _make_mock_llm(response_json: dict) -> MagicMock:
-    """Create a mock LLM that returns a JSON string as response.content."""
     llm = MagicMock()
     mock_response = MagicMock()
     mock_response.content = json.dumps(response_json)
@@ -19,7 +19,7 @@ def _make_mock_llm(response_json: dict) -> MagicMock:
     return llm
 
 
-# Construction
+# Initialization
 def test_classifier_stores_llm_and_prompt():
     llm = MagicMock()
     classifier = QueryClassifier(llm)

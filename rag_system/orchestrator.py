@@ -36,7 +36,6 @@ class Orchestrator:
     def query(self, user_query: str) -> OrchestratorResult:
         """
         Runs the full RAG pipeline for a user query.
-
         Steps:
             1. Classifies the query into relevant domains
             2. Routes domain-specific sub-queries to the appropriate agents
@@ -49,8 +48,7 @@ class Orchestrator:
         # Handling no relevant domains
         if not classification.domains:
             return OrchestratorResult(
-                answer="I couldn't identify relevant knowledge domains for your query. "
-                "Please try rephrasing or be more specific.",
+                answer="I couldn't identify relevant knowledge domains for your query. Please try rephrasing or be more specific.",
                 classification=classification,
                 agent_responses=[],
                 citations=[],
