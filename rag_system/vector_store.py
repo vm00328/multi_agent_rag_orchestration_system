@@ -35,6 +35,7 @@ class VectorStoreManager:
             encode_kwargs={"normalize_embeddings": True},
         )
         self.stores: dict[Domain, FAISS] = {}
+        self.documents: dict[Domain, list] = {}
 
     def initialize(self) -> None:
         """Loads all domain PDFs, chunks them, and builds FAISS indices."""
@@ -50,6 +51,8 @@ class VectorStoreManager:
                 chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
             )
             chunks = text_splitter.split_documents(pages)
+
+            self.documents[domain] = chunks
 
             # Tagging each chunk with domain metadata
             for i, chunk in enumerate(chunks):
@@ -90,24 +93,31 @@ class VectorStoreManager:
         return self.stores[domain].as_retriever(search_kwargs={"k": top_k})
 
     def add_document(
-        self, domain: Domain, text: str, source: str = "manual_addition"
+        self,
+        domain: Domain,
+        text: str,
+        source: str = "manual_addition",
+        similarity_threshold: float = 0.95,
     ) -> int:
         """
-        Add new text content to an existing domain's vector store.
-
-        Args:
-            domain: Target domain to add the document to.
-            text: Raw text content to chunk, embed, and index.
-            source: Source label for citation tracking.
+        Add new text content to an existing domain's vector store. Skips if very similar content already exists.
 
         Returns:
-            Number of chunks added.
-
-        Raises:
-            ValueError: If the domain has not been initialized.
+            Number of chunks added (0 if content already exists).
         """
         if domain not in self.stores:
             raise ValueError(f"Domain '{domain.value}' not initialized.")
+
+        # Check for duplicate content
+        results = self.stores[domain].similarity_search_with_score(text[:200], k=1)
+        if results:
+            _, score = results[0]
+            # FAISS L2 distance: lower = more similar
+            if score < similarity_threshold:
+                print(
+                    f"Similar content already exists in {domain.value} (score: {score:.4f}). Skipping."
+                )
+                return 0
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=CHUNK_SIZE,
@@ -125,3 +135,21 @@ class VectorStoreManager:
         self.documents.setdefault(domain, []).extend(docs)
 
         return len(docs)
+
+    def save(self, path: str = "faiss_indices") -> None:
+        """Saves all domain FAISS indices to disk."""
+        save_dir = Path(path)
+        save_dir.mkdir(exist_ok=True)
+        for domain, store in self.stores.items():
+            store.save_local(str(save_dir / domain.value))
+
+    def load(self, path: str = "faiss_indices") -> None:
+        """Loads pre-built FAISS indices from disk."""
+        load_dir = Path(path)
+        for domain in DOMAIN_FILES:
+            domain_path = load_dir / domain.value
+            self.stores[domain] = FAISS.load_local(
+                str(domain_path),
+                self.embeddings,
+                allow_dangerous_deserialization=True,
+            )
