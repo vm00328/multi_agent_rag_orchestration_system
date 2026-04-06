@@ -13,6 +13,8 @@ DOMAIN_FILES = {
     Domain.COMPLIANCE: "compliance_knowledge.pdf",
 }
 
+CHUNK_SIZE, CHUNK_OVERLAP = 1000, 200
+
 
 class VectorStoreManager:
     """
@@ -45,7 +47,7 @@ class VectorStoreManager:
 
             # Chunking w/ overlap to preserve context across chunks
             text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000, chunk_overlap=200
+                chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
             )
             chunks = text_splitter.split_documents(pages)
 
@@ -86,3 +88,40 @@ class VectorStoreManager:
         Returns a LangChain retriever for a domain. Will be used by the domain agents.
         """
         return self.stores[domain].as_retriever(search_kwargs={"k": top_k})
+
+    def add_document(
+        self, domain: Domain, text: str, source: str = "manual_addition"
+    ) -> int:
+        """
+        Add new text content to an existing domain's vector store.
+
+        Args:
+            domain: Target domain to add the document to.
+            text: Raw text content to chunk, embed, and index.
+            source: Source label for citation tracking.
+
+        Returns:
+            Number of chunks added.
+
+        Raises:
+            ValueError: If the domain has not been initialized.
+        """
+        if domain not in self.stores:
+            raise ValueError(f"Domain '{domain.value}' not initialized.")
+
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=CHUNK_SIZE,
+            chunk_overlap=CHUNK_OVERLAP,
+        )
+        docs = splitter.create_documents([text])
+
+        existing_count = len(self.documents.get(domain, []))
+        for i, doc in enumerate(docs):
+            doc.metadata["domain"] = domain.value
+            doc.metadata["source"] = source
+            doc.metadata["chunk_id"] = f"{domain.value}_{existing_count + i:03d}"
+
+        self.stores[domain].add_documents(docs)
+        self.documents.setdefault(domain, []).extend(docs)
+
+        return len(docs)

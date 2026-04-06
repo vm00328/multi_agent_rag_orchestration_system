@@ -274,9 +274,13 @@ def test_multi_domain_calls_synthesis_llm(mock_agent_cls, mock_classifier_cls):
     orchestrator.llm.invoke.assert_called_once()
     assert result.answer == "Combined answer"
 
-    # Verifying the synthesis prompt reaches the LLM
     call_args = orchestrator.llm.invoke.call_args[0][0]  # messages list
-    assert call_args[0].content == SYNTHESIS_PROMPT
+    assert (
+        call_args[0].content == SYNTHESIS_PROMPT
+    )  # Verifying the synthesis prompt reaches the LLM
+    assert (
+        "confidence:" in call_args[1].content
+    )  # Verifying the synthesis prompt and confidence scores reach the LLM
 
 
 # Edge case - the classifier returns no relevant domains to the query
