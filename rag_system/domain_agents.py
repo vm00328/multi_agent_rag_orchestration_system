@@ -1,6 +1,5 @@
 from langchain_core.messages import SystemMessage, HumanMessage
-from torch import chunk
-from rag_system.utils import Domain, AgentResponse, Citation, RetrievedChunk, BASE_TOP_K
+from rag_system.utils import Domain, AgentResponse, Citation, BASE_TOP_K
 from rag_system.vector_store import VectorStoreManager
 
 # Each domain agent gets a tailored system prompt so the LLM answers from the perspective of the right specialist
