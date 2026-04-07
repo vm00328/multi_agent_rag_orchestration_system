@@ -1,6 +1,6 @@
 from typing import Dict, List
 from langchain_core.messages import SystemMessage, HumanMessage
-from rag_system.utils import Domain, AgentResponse, OrchestratorResult
+from rag_system.utils import Domain, AgentResponse, OrchestratorResult, compute_top_k
 from rag_system.vector_store import VectorStoreManager
 from rag_system.domain_agents import DomainAgent
 from rag_system.query_classifier import QueryClassifier
@@ -13,7 +13,7 @@ SYNTHESIS_PROMPT = """You are a knowledge synthesizer for Postbank's internal kn
     - Highlights connections between domains where relevant
     - Uses clear section headings when covering multiple domains
     
-    If domain answers contradict each other, explicitly flag the conflict, present both perspectives, and recommend following the higher-confidence domain's guidance."
+    If domain answers contradict each other, explicitly flag the conflict, present both perspectives, and recommend following the higher-confidence domain's guidance.
     Do not fabricate information beyond what the specialists provided."""
 
 
@@ -54,11 +54,15 @@ class Orchestrator:
                 citations=[],
             )
 
+        # Dynamic retrieval strategy: size top_k once per query from query length + number of routed domains.
+        # All Agents in a multi-domain query will use the same top_k to ensure a fair comparison of their responses during synthesis.
+        top_k = compute_top_k(user_query, len(classification.domains))
+
         # Routing to domain agents and collecting responses
         agent_responses: List[AgentResponse] = []
         for domain in classification.domains:
             sub_query = classification.sub_queries.get(domain.value, user_query)
-            response = self.agents[domain].query(sub_query)
+            response = self.agents[domain].query(sub_query, top_k=top_k)
             agent_responses.append(response)
 
         # Flattenning citations from all agents

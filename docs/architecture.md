@@ -34,6 +34,14 @@ I have decided to handle potential conflicts between the domain agents directly 
 
 - we could compare the semantic similarity between the responses of the agents but the problem is that low semantic similarity doesn't mean contradiction - the technical and compliance domains should talk about different things. This way we risk getting false positives constantly.
 
+6. **Saving FAISS indices to disk**
+
+I have decided to save FAISS indices to disk in a project sub-folder 'faiss_indices'. This way I do not have to recompute the indices every time I run the demo notebook. This helps with computational efficiency and allows the Jupyter notebook to be executed considerably faster.
+
+7. **Adding new content to an existing domain's vector store**
+
+New content not added if very similar content already exists (threshold set at 0.95).
+
 
 **Limitations:**
 

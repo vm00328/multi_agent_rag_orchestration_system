@@ -143,12 +143,46 @@ def test_query_passes_sub_queries_to_agents(mock_agent_cls, mock_classifier_cls)
 
     orchestrator.query("test query")
 
+    # Query is 2 words ("test query") and 2 domains routed, so compute_top_k = 4 + 0 (length_bonus) + 1 (domain_bonus) = 5
     orchestrator.agents[Domain.TECHNICAL].query.assert_called_once_with(
-        "deploy microservice"
+        "deploy microservice", top_k=5
     )
     orchestrator.agents[Domain.COMPLIANCE].query.assert_called_once_with(
-        "compliance checks"
+        "compliance checks", top_k=5
     )
+
+
+# Dynamic retrieval strategy
+@patch("rag_system.orchestrator.QueryClassifier")
+@patch("rag_system.orchestrator.DomainAgent")
+# Testing that the orchestrator computes top_k dynamically from query length and the number of routed domains, and passes the boosted value to every agent
+def test_orchestrator_passes_dynamic_top_k(mock_agent_cls, mock_classifier_cls):
+    llm = MagicMock()
+    vsm = MagicMock()
+
+    # 30-word query + 3 routed domains => top_k = 4 + 2 + 2 = 8
+    long_query = " ".join(["word"] * 30)
+    classification = _make_classification(
+        [Domain.TECHNICAL, Domain.BUSINESS, Domain.COMPLIANCE],
+        {"technical": "tq", "business": "bq", "compliance": "cq"},
+        query=long_query,
+    )
+    mock_classifier_cls.return_value.classify.return_value = classification
+
+    orchestrator = Orchestrator(llm, vsm)
+    for domain in Domain:
+        orchestrator.agents[domain] = MagicMock()
+        orchestrator.agents[domain].query.return_value = _make_agent_response(domain)
+
+    mock_synthesis = MagicMock()
+    mock_synthesis.content = "Synthesized"
+    orchestrator.llm.invoke.return_value = mock_synthesis
+
+    orchestrator.query(long_query)
+
+    orchestrator.agents[Domain.TECHNICAL].query.assert_called_once_with("tq", top_k=8)
+    orchestrator.agents[Domain.BUSINESS].query.assert_called_once_with("bq", top_k=8)
+    orchestrator.agents[Domain.COMPLIANCE].query.assert_called_once_with("cq", top_k=8)
 
 
 # Response structure
