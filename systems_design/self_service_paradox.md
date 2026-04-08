@@ -135,6 +135,43 @@ Transitions are critical. Users should not switch tools. They should open the sa
 
 A typical progression is: ```Template -> Configure -> Visual Edit -> Advanced Logic -> Code/API Extension```
 
+
+```text
+                         Single Unified Platform
+┌──────────────────────────────────────────────────────────────────────┐
+│                 Shared Workflow Model + Shared Runtime               │
+└──────────────────────────────────────────────────────────────────────┘
+
+Business User Entry                                              Power User Entry
+        │                                                               │
+        v                                                               v
+┌──────────────────┐                                           ┌──────────────────┐
+│ Template Gallery │                                           │ Code / API / SDK │
+└─────────┬────────┘                                           └─────────┬────────┘
+          v                                                              v
+┌──────────────────┐                                           ┌──────────────────┐
+│ Guided Wizard    │                                           │ Custom Logic /   │
+│ + Forms          │                                           │ Connectors       │
+└─────────┬────────┘                                           └─────────┬────────┘
+          v                                                              v
+┌──────────────────┐                                           ┌──────────────────┐
+│ Visual Builder   │<──────────── Same Workflow ────────────> │ Schema / Advanced │
+│                  │              Definition                  │ Editor            │
+└─────────┬────────┘                                           └─────────┬────────┘
+          └──────────────────────────────┬───────────────────────────────┘
+                                         v
+                         ┌────────────────────────────────┐
+                         │ Validation + Policy Checks     │
+                         └────────────────┬───────────────┘
+                                          v
+                         ┌────────────────────────────────┐
+                         │ Secure Execution Engine        │
+                         └────────────────┬───────────────┘
+                                          v
+                         ┌────────────────────────────────┐
+                         │ Audit, Monitoring, Approvals   │
+                         └────────────────────────────────┘
+```
 ## 5.4 Onboarding Pathways
 
 The onboarding model should be persona-based, not platform-based:
@@ -239,6 +276,43 @@ The platform should embed the following controls as default guardrails and non-n
 - versioned deployments and rollback
 - data residency and classification enforcement
 - observability and incident tracing
+
+```text
+[Design Workflow]
+       |
+       v
+[Validate Schema and Policies]
+       |
+       +---- fail ----> [Return Errors to Author]
+       |
+       v
+[Sandbox Test Execution]
+       |
+       +---- fail ----> [Fix and Re-test]
+       |
+       v
+[Approval Gate]
+       |
+       +---- rejected ---> [Revise Workflow]
+       |
+       v
+[Promote to Production]
+       |
+       v
+[Execute Workflow]
+       |
+       v
+[Observe Runs]
+  - logs
+  - metrics
+  - traces
+  - audit trail
+       |
+       +---- incident ----> [Rollback / Disable / Investigate]
+       |
+       v
+[Iterate and Version Next Release]
+```
 
 ---
 
