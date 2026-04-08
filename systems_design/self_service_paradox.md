@@ -222,7 +222,7 @@ Every extension should:
 
 # 7. Governance, Security, and Compliance
 
-Controlled automation is critical in a banking context. The following controls should be embedded into the system architecture.
+Controlled automation is critical to the success of the platform. The following controls should be embedded into the system architecture.
 
 ## 7.1 Role-Based Access Control
 
@@ -360,7 +360,7 @@ Mitigation: progressive disclosure and role-based access keep the experience app
 
 Approval processes and policy checks can slow delivery.
 
-Mitigation: pre-approved templates, low-risk automation fast lanes, and automated validation reduce friction.
+Mitigation: pre-approved templates
 
 ## 9.3 Trade-off: Extensibility vs Platform Stability
 

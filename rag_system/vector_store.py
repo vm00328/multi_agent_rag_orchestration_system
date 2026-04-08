@@ -100,7 +100,7 @@ class VectorStoreManager:
         similarity_threshold: float = 0.95,
     ) -> int:
         """
-        Add new text content to an existing domain's vector store. Skips if very similar content already exists.
+        Adds new text content to an existing domain's vector store. Skips if very similar content already exists.
 
         Returns:
             Number of chunks added (0 if content already exists).

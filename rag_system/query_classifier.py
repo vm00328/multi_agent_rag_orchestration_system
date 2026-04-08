@@ -2,26 +2,26 @@ import json
 from langchain_core.messages import SystemMessage, HumanMessage
 from rag_system.utils import Domain, ClassificationResult
 
-CLASSIFICATION_PROMPT = (
-    "You are a query classifier for Postbank's internal knowledge system. "
-    "The system has three knowledge domains:\n"
-    "- technical: infrastructure, deployments, CI/CD, APIs, monitoring, troubleshooting\n"
-    "- business: approvals, workflows, change management, stakeholders, timelines\n"
-    "- compliance: security policies, regulations, audit, data governance, controls\n\n"
-    "Given a user query, determine which domains are relevant, generate a focused "
-    "sub-query for each relevant domain, and assign a confidence score (0.0 to 1.0) "
-    "for each domain.\n\n"
-    "Respond with ONLY a JSON object in this exact format, no other text:\n"
-    "{\n"
+CLASSIFICATION_PROMPT = """You are a query classifier for Postbank's internal knowledge system.
+    The system has three knowledge domains:
+    - technical: infrastructure, deployments, CI/CD, APIs, monitoring, troubleshooting
+    - business: approvals, workflows, change management, stakeholders, timelines
+    - compliance: security policies, regulations, audit, data governance, controls
+    
+    Given a user query, determine which domains are relevant, generate a focused
+    sub-query for each relevant domain, and assign a confidence score (0.0 to 1.0) for each domain.
+    
+    Respond with ONLY a JSON object in this exact format, no other text:"
+    "{"
     '  "confidence_scores": {"technical": 0.0, "business": 0.0, "compliance": 0.0},\n'
     '  "sub_queries": {"technical": "...", "business": "...", "compliance": "..."}\n'
-    "}\n\n"
-    "Rules:\n"
-    "- Always include all three domains in confidence_scores\n"
-    "- Set confidence to 0.0 for irrelevant domains\n"
-    "- Sub-queries for irrelevant domains should be empty strings\n"
-    "- Sub-queries for relevant domains should be specific and tailored for that domain's context"
-)
+    "}"
+    
+    Rules:
+    - Always include all three domains in confidence_scores
+    - Set confidence to 0.0 for irrelevant domains
+    - Sub-queries for irrelevant domains should be empty strings
+    - Sub-queries for relevant domains should be specific and tailored for that domain's context"""
 
 CONFIDENCE_THRESHOLD = 0.3
 

@@ -68,24 +68,6 @@ class OrchestratorResult:
 BASE_TOP_K, MAX_TOP_K = 4, 10
 
 
-def compute_top_k(query: str, num_domains: int) -> int:
-    """
-    Picks top_k from two query-level signals:
-      - query length (words): longer query -> more chunks (broader context)
-      - num_domains routed:   more domains -> more chunks per domain (each domain gets less LLM attention, so itneeds stronger evidence to compensate)
-    """
-    word_count = len(query.split())
-    if word_count <= 10:
-        length_bonus = 0
-    elif word_count <= 20:
-        length_bonus = 1
-    else:
-        length_bonus = 2
-
-    domain_bonus = max(0, num_domains - 1)  # 0 for 1 domain, 1 for 2, 2 for 3
-    return min(BASE_TOP_K + length_bonus + domain_bonus, MAX_TOP_K)
-
-
 class FeedbackStore:
     """Collects per-domain feedback scores and exposes rolling trust scores."""
 

@@ -4,8 +4,9 @@ from rag_system.utils import (
     Domain,
     AgentResponse,
     OrchestratorResult,
-    compute_top_k,
     FeedbackStore,
+    BASE_TOP_K,
+    MAX_TOP_K,
 )
 from rag_system.vector_store import VectorStoreManager
 from rag_system.domain_agents import DomainAgent
@@ -40,6 +41,23 @@ class Orchestrator:
         }
         self.feedback = FeedbackStore()
 
+    def _compute_top_k(self, query: str, num_domains: int) -> int:
+        """
+        Picks top_k from two query-level signals:
+        - query length (words): longer query -> more chunks (broader context)
+        - num_domains routed:   more domains -> more chunks per domain (each domain gets less LLM attention, so it needs stronger evidence to compensate)
+        """
+        word_count = len(query.split())
+        if word_count <= 10:
+            length_bonus = 0
+        elif word_count <= 20:
+            length_bonus = 1
+        else:
+            length_bonus = 2
+
+        domain_bonus = max(0, num_domains - 1)  # 0 for 1 domain, 1 for 2, 2 for 3
+        return min(BASE_TOP_K + length_bonus + domain_bonus, MAX_TOP_K)
+
     def query(self, user_query: str) -> OrchestratorResult:
         """
         Runs the full RAG pipeline for a user query.
@@ -63,7 +81,7 @@ class Orchestrator:
 
         # Dynamic retrieval strategy: size top_k once per query from query length + number of routed domains.
         # All Agents in a multi-domain query will use the same top_k to ensure a fair comparison of their responses during synthesis.
-        top_k = compute_top_k(user_query, len(classification.domains))
+        top_k = self._compute_top_k(user_query, len(classification.domains))
 
         # Routing to domain agents and collecting responses
         agent_responses: List[AgentResponse] = []
@@ -72,7 +90,7 @@ class Orchestrator:
             response = self.agents[domain].query(sub_query, top_k=top_k)
             agent_responses.append(response)
 
-        # Flattenning citations from all agents
+        # Flattening citations from all agents
         citations = [
             citation for response in agent_responses for citation in response.citations
         ]
