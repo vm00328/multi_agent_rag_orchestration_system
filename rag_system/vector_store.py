@@ -28,7 +28,9 @@ class VectorStoreManager:
     """
 
     def __init__(self, data_dir: str = "data/"):
-        self.data_dir = Path(data_dir)
+        base_dir = Path(__file__).resolve().parent.parent  # project root
+        self.data_dir = base_dir / data_dir
+
         self.embeddings = HuggingFaceEmbeddings(
             model_name="Qwen/Qwen3-Embedding-0.6B",
             # Normalizing the output vectors to L2 unit length for improved cosine similarity search
