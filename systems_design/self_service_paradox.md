@@ -34,7 +34,7 @@ Power is introduced through governed extension points: custom blocks, connectors
 
 ## 3.4 Policy by Default
 
-Auditability, approvals, RBAC, secret management, data classification, and environment separation must be built into the platform rather than bolted on later.
+Auditability, approvals, Role based access control (RBAC), secret management, data classification, and environment separation must be built into the platform rather than added on later.
 
 ---
 
@@ -57,9 +57,9 @@ The critical decision is that all authoring modes compile to the same canonical 
 
 To satisfy the requirement for a unified platform, the architecture should be centered on a **Shared Representation Model**.
 
-### Unified DSL
+### Unified Domain Specific Language (DSL)
 
-The platform should use a canonical JSON-based workflow schema to define workflows. When a business user drags a "Send Email" block, it generates a structured workflow definition. When a power user writes code, it compiles to that same canonical format.
+The platform should use a canonical JSON-based workflow schema to define workflows. For example, when a business user drags a "Send Email" block, it generates a structured workflow definition. When a power user writes code, it compiles to that same canonical format.
 
 ### Progressive Disclosure Strategy
 
@@ -78,7 +78,7 @@ A React/TypeScript frontend can provide a dynamic canvas that switches between v
 +---------------------------------------------------------------+
 |                        Experience Layer                       |
 |                                                               |
-|  [Templates] [Wizard] [Visual Builder] [Advanced Editor/API] |
+|  [Templates] [Wizard] [Visual Builder] [Advanced Editor/API]  |
 +---------------------------+-----------------------------------+
                             |
                             v
@@ -110,7 +110,7 @@ A React/TypeScript frontend can provide a dynamic canvas that switches between v
 
 ## 5.1 Business User Experience
 
-The business experience should optimize for confidence and speed:
+The business experience should optimize for confidence and speed. The plan for business users is as follows:
 
 - Start from business-oriented templates
 - Use plain-language labels instead of technical ones
@@ -132,8 +132,6 @@ The power-user experience should optimize for flexibility and precision:
 ## 5.3 Transitions Between Capabilities
 
 Transitions are critical. Users should not switch tools. They should open the same workflow in a more advanced mode.
-
-A typical progression is: ```Template -> Configure -> Visual Edit -> Advanced Logic -> Code/API Extension```
 
 
 ```text
