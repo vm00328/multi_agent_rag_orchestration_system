@@ -1,6 +1,12 @@
 from typing import Dict, List
 from langchain_core.messages import SystemMessage, HumanMessage
-from rag_system.utils import Domain, AgentResponse, OrchestratorResult, compute_top_k
+from rag_system.utils import (
+    Domain,
+    AgentResponse,
+    OrchestratorResult,
+    compute_top_k,
+    FeedbackStore,
+)
 from rag_system.vector_store import VectorStoreManager
 from rag_system.domain_agents import DomainAgent
 from rag_system.query_classifier import QueryClassifier
@@ -32,6 +38,7 @@ class Orchestrator:
         self.agents: Dict[Domain, DomainAgent] = {
             domain: DomainAgent(domain, vector_store_manager, llm) for domain in Domain
         }
+        self.feedback = FeedbackStore()
 
     def query(self, user_query: str) -> OrchestratorResult:
         """
@@ -93,6 +100,9 @@ class Orchestrator:
         if len(agent_responses) == 1:
             return agent_responses[0].answer
 
+        trust = self.feedback.trust_scores()
+        trust_line = ", ".join(f"{d}: {s:.2f}" for d, s in trust.items())
+
         # Multi-domain - synthesize via LLM
         domain_answers = "\n\n".join(
             f"[{response.domain.value.upper()} | confidence: {confidence_scores.get(response.domain.value, 0.0):.2f}]\n{response.answer}"
@@ -103,9 +113,15 @@ class Orchestrator:
             SystemMessage(content=SYNTHESIS_PROMPT),
             HumanMessage(
                 content=f"Original question: {user_query}\n\n"
+                f"Domain trust scores (historical feedback): {trust_line}\n\n"
                 f"Domain specialist answers:\n{domain_answers}"
             ),
         ]
 
         response = self.llm.invoke(messages)
         return response.content
+
+    def record_feedback(self, scores: Dict[str, float]) -> None:
+        """Records user feedback scores (0.0-1.0) per domain after a query."""
+        for domain_name, score in scores.items():
+            self.feedback.record(Domain(domain_name), score)
