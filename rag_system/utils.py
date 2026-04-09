@@ -1,8 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import Any, Dict, List
-import time
-from functools import wraps
 
 
 class Domain(Enum):
@@ -41,6 +39,8 @@ class AgentResponse:
     answer: str
     citations: List[Citation]
     retrieved_chunks: List[RetrievedChunk]
+    latency_ms: float = 0.0
+    success: bool = True
 
 
 @dataclass
@@ -62,6 +62,8 @@ class OrchestratorResult:
     classification: ClassificationResult  #  full classification result for traceability (domains, confidence scores, sub-queries)
     agent_responses: List[AgentResponse]  # domain agent responses (answer + citations)
     citations: List[Citation]  # flattened list of all citations from all agents
+    total_latency_ms: float = 0.0
+    success: bool = True
 
 
 # Dynamic retrieval strategy

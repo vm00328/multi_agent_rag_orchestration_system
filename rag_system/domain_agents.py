@@ -1,6 +1,7 @@
 from langchain_core.messages import SystemMessage, HumanMessage
 from rag_system.utils import Domain, AgentResponse, Citation, BASE_TOP_K
 from rag_system.vector_store import VectorStoreManager
+import time
 
 # Each domain agent gets a tailored system prompt so the LLM answers from the perspective of the right specialist
 DOMAIN_PROMPTS = {
@@ -55,6 +56,9 @@ class DomainAgent:
             3. LLM receives a systemm message (domain role) and a human message (context + question)
             4. Returns response with citations and similarity scores for traceability
         """
+
+        start_time = time.time()
+
         # Retrieving relevant chunks
         retrieved_chunks = self.vector_store.search(question, self.domain, top_k=top_k)
 
@@ -67,6 +71,9 @@ class DomainAgent:
             HumanMessage(content=f"Context:\n{context}\n\nQuestion: {question}"),
         ]
         response = self.llm.invoke(messages)
+
+        latency_ms = (time.time() - start_time) * 1000
+        success = bool(response.content.strip())
 
         # Building citations and retrieved chunks for traceability
         citations = [
@@ -84,4 +91,6 @@ class DomainAgent:
             answer=response.content,
             citations=citations,
             retrieved_chunks=retrieved_chunks,
+            latency_ms=latency_ms,
+            success=success,
         )

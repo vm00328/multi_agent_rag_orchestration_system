@@ -1,3 +1,4 @@
+import time
 from typing import Dict, List
 from langchain_core.messages import SystemMessage, HumanMessage
 from rag_system.utils import (
@@ -41,6 +42,9 @@ class Orchestrator:
         }
         self.feedback = FeedbackStore()
 
+        self.total_queries = 0
+        self.successful_queries = 0
+
     def _compute_top_k(self, query: str, num_domains: int) -> int:
         """
         Picks top_k from two query-level signals:
@@ -58,6 +62,11 @@ class Orchestrator:
         domain_bonus = max(0, num_domains - 1)  # 0 for 1 domain, 1 for 2, 2 for 3
         return min(BASE_TOP_K + length_bonus + domain_bonus, MAX_TOP_K)
 
+    def success_rate(self) -> float:
+        if self.total_queries == 0:
+            return 0.0
+        return self.successful_queries / self.total_queries
+
     def query(self, user_query: str) -> OrchestratorResult:
         """
         Runs the full RAG pipeline for a user query.
@@ -67,16 +76,24 @@ class Orchestrator:
             3. Collects agent responses and flatten citations
             4. Synthesizes a final answer
         """
+        start_time = time.time()
+        self.total_queries += 1
+
         # Query Classification
         classification = self.classifier.classify(user_query)
 
         # Handling no relevant domains
         if not classification.domains:
+            total_latency_ms = (
+                time.time() - start_time
+            ) * 1000  # latency for classification step
             return OrchestratorResult(
                 answer="I couldn't identify relevant knowledge domains for your query. Please try rephrasing or be more specific.",
                 classification=classification,
                 agent_responses=[],
                 citations=[],
+                total_latency_ms=total_latency_ms,
+                success=False,
             )
 
         # Dynamic retrieval strategy: size top_k once per query from query length + number of routed domains.
@@ -99,6 +116,12 @@ class Orchestrator:
         answer = self._synthesize(
             user_query, classification.confidence_scores, agent_responses
         )
+
+        total_latency_ms = (time.time() - start_time) * 1000
+        success = bool(answer.strip())
+
+        if success:
+            self.successful_queries += 1
 
         return OrchestratorResult(
             answer=answer,
